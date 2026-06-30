@@ -1,0 +1,30 @@
+{
+  "name": "amazon_pay",
+  "version": "1.0.0",
+  "description": "Amazon In-App Purchase RTN Webhook Ingestion Service",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ankitjojo/amazon_pay.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ankitjojo/amazon_pay/issues"
+  },
+  "homepage": "https://github.com/ankitjojo/amazon_pay#readme",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.7.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
