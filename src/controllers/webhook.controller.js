@@ -23,6 +23,14 @@ const handleAmazonRTN = async (req, res) => {
     const payload = req.body;
     const rawBody = req.rawBody;
 
+    // ── Incoming request log ───────────────────────────────────────────────
+    console.log("─────────────────────────────────────────────────────");
+    console.log(`📩  Webhook hit: POST /api/webhooks/amazon/rtdn`);
+    console.log(`🕐  Time: ${new Date().toISOString()}`);
+    console.log(`🔑  SNS Type: ${payload?.Type || "(none — direct payload)"}`);
+    console.log(`📦  req.body:`, JSON.stringify(payload, null, 2));
+    console.log("─────────────────────────────────────────────────────");
+
     // ── Basic payload guard ────────────────────────────────────────────────
     if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
       console.warn("⚠️   Invalid payload received (not a JSON object). Raw:", rawBody);
