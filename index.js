@@ -1,5 +1,6 @@
 require("dotenv").config();
 const app = require("./src/app");
+const { closeDB } = require("./src/config/db.config");
 
 const PORT = process.env.PORT || 3000;
 
@@ -11,16 +12,15 @@ const server = app.listen(PORT, () => {
 });
 
 // ── Graceful Shutdown ──────────────────────────────────────────────────────
-const shutdown = (signal) => {
+const shutdown = async (signal) => {
   console.log(`\n⚠️   ${signal} received. Shutting down gracefully…`);
   server.close(async () => {
     console.log("✅  HTTP server closed.");
     try {
-      const mongoose = require("mongoose");
-      await mongoose.connection.close();
+      await closeDB();
       console.log("✅  MongoDB connection closed.");
     } catch (err) {
-      console.error("❌  Error closing MongoDB connection:", err.message);
+      console.error("❌  Error closing MongoDB:", err.message);
     }
     process.exit(0);
   });
@@ -29,7 +29,6 @@ const shutdown = (signal) => {
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 process.on("SIGINT",  () => shutdown("SIGINT"));
 
-// Catch unhandled promise rejections
-process.on("unhandledRejection", (reason, promise) => {
-  console.error("❌  Unhandled Rejection at:", promise, "reason:", reason);
+process.on("unhandledRejection", (reason) => {
+  console.error("❌  Unhandled Rejection:", reason);
 });

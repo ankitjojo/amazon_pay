@@ -1,6 +1,6 @@
 require("dotenv").config();
 const express = require("express");
-const connectDB = require("./config/db.config");
+const { connectDB } = require("./config/db.config");
 
 const webhookRoutes = require("./routes/webhook.routes");
 const iapRoutes     = require("./routes/iap.routes");
@@ -8,17 +8,15 @@ const iapRoutes     = require("./routes/iap.routes");
 const app = express();
 
 // ── Connect to MongoDB ─────────────────────────────────────────────────────
-connectDB();
+connectDB().catch((err) => {
+  console.error("❌  MongoDB connection failed:", err.message);
+  process.exit(1);
+});
 
 // ── Global Middleware ──────────────────────────────────────────────────────
-// NOTE: We do NOT attach express.json() globally on the webhook route —
-// the raw-body middleware handles parsing per-route to preserve raw bytes.
-// express.json() is added here only for any future non-webhook routes.
+// Webhook route uses captureRawBody middleware — skip global JSON parsing for it
 app.use((req, res, next) => {
-  if (req.path.startsWith("/api/webhooks")) {
-    // Skip global JSON parsing — handled per-route by captureRawBody
-    return next();
-  }
+  if (req.path.startsWith("/api/webhooks")) return next();
   express.json({ limit: "1mb" })(req, res, next);
 });
 
@@ -43,14 +41,14 @@ app.get("/", (req, res) => {
         list:   "GET  /api/webhooks/amazon/rtdn",
       },
       iap: {
-        verifyReceipt: "POST /api/iap/verify-receipt",
+        verifyReceipt:     "POST /api/iap/verify-receipt",
         listVerifications: "GET  /api/iap/verify-receipt",
       },
     },
   });
 });
 
-// ── 404 Catch-all ──────────────────────────────────────────────────────────
+// ── 404 ────────────────────────────────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).json({ success: false, message: `Route ${req.method} ${req.path} not found` });
 });
@@ -58,11 +56,7 @@ app.use((req, res) => {
 // ── Global Error Handler ───────────────────────────────────────────────────
 app.use((err, req, res, next) => {
   console.error("❌  Unhandled error:", err.message);
-  res.status(500).json({
-    success: false,
-    message: "Internal server error",
-    ...(process.env.NODE_ENV !== "production" && { error: err.message }),
-  });
+  res.status(500).json({ success: false, message: "Internal server error" });
 });
 
 module.exports = app;
