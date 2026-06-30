@@ -8,10 +8,7 @@ const connectDB = async () => {
   const uri = process.env.MONGO_URI || "mongodb://localhost:27017/amazon_pay";
 
   try {
-    await mongoose.connect(uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(uri);
     console.log(`✅  MongoDB connected → ${mongoose.connection.host}/${mongoose.connection.name}`);
   } catch (error) {
     console.error("❌  MongoDB connection failed:", error.message);

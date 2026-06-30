@@ -3,6 +3,7 @@ const express = require("express");
 const connectDB = require("./config/db.config");
 
 const webhookRoutes = require("./routes/webhook.routes");
+const iapRoutes     = require("./routes/iap.routes");
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use((req, res, next) => {
 
 // ── Routes ─────────────────────────────────────────────────────────────────
 app.use("/api/webhooks/amazon", webhookRoutes);
+app.use("/api/iap", iapRoutes);
 
 // ── Root Health Check ──────────────────────────────────────────────────────
 app.get("/", (req, res) => {
@@ -36,8 +38,14 @@ app.get("/", (req, res) => {
     service: "Amazon Pay RTN Webhook Service",
     timestamp: new Date().toISOString(),
     endpoints: {
-      ingest: "POST /api/webhooks/amazon/rtdn",
-      list: "GET  /api/webhooks/amazon/rtdn",
+      webhooks: {
+        ingest: "POST /api/webhooks/amazon/rtdn",
+        list:   "GET  /api/webhooks/amazon/rtdn",
+      },
+      iap: {
+        verifyReceipt: "POST /api/iap/verify-receipt",
+        listVerifications: "GET  /api/iap/verify-receipt",
+      },
     },
   });
 });
