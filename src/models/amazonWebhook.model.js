@@ -1,90 +1,54 @@
 const mongoose = require("mongoose");
 
 /**
- * Schema for Amazon Appstore Real-Time Developer Notifications (RTDN).
+ * Ultra-flexible schema for storing Amazon webhook payloads.
  * Collection: amazon_webhooks
  *
- * Fields mirror the Amazon RTN payload spec:
- * https://developer.amazon.com/docs/in-app-purchasing/rtdn-api.html
+ * Uses strict: false so Mongoose never rejects any field shape.
+ * The entire req.body is stored as-is under `payload` (Mixed type).
+ * No type validation — works for any Amazon SNS message type.
  */
 const amazonWebhookSchema = new mongoose.Schema(
   {
-    // ── Core Notification Fields ───────────────────────────────────────────
+    // Indexed metadata for easy querying — extracted from the payload
+    snsType: {
+      type: String,
+      default: null,
+      index: true,
+      comment: "payload.Type — e.g. Notification, SubscriptionConfirmation, etc.",
+    },
+
     notificationType: {
       type: String,
-      required: true,
-      trim: true,
-      index: true,
-      comment:
-        "e.g. SUBSCRIBE, CANCEL_SUBSCRIPTION, RENEWAL, SUBSCRIPTION_PURCHASED, etc.",
-    },
-
-    rvsVersion: {
-      type: String,
-      trim: true,
       default: null,
-      comment: "Receipt Verification Service version string",
-    },
-
-    customerId: {
-      type: String,
-      trim: true,
       index: true,
-      default: null,
-      comment: "Amazon customer ID tied to the transaction",
+      comment: "RTN notificationType from inside the SNS Message field",
     },
 
-    receiptId: {
-      type: String,
-      trim: true,
-      index: true,
-      default: null,
-      comment: "Unique receipt identifier for the IAP transaction",
-    },
-
-    productId: {
-      type: String,
-      trim: true,
-      index: true,
-      default: null,
-      comment: "Amazon product/SKU identifier",
-    },
-
-    betaProductTransaction: {
-      type: Boolean,
-      default: false,
-      comment: "True if this is a sandbox / beta test transaction",
-    },
-
-    // ── Timestamp Fields ───────────────────────────────────────────────────
     receivedAt: {
       type: Date,
       default: () => new Date(),
       index: true,
-      comment: "Server-side timestamp when the webhook was received",
     },
 
-    // ── Raw Payload Preservation ───────────────────────────────────────────
-    rawBody: {
+    // ── The full, unmodified req.body stored as-is ─────────────────────────
+    // Mixed + strict:false means any shape, any fields, no type errors ever.
+    payload: {
       type: mongoose.Schema.Types.Mixed,
       required: true,
-      comment:
-        "The complete, unmodified incoming JSON payload for audit/debug purposes",
     },
   },
   {
-    // ── Collection Options ─────────────────────────────────────────────────
-    collection: "amazon_webhooks", // Explicit collection name
-    timestamps: true,              // Adds createdAt + updatedAt
-    versionKey: false,             // Disable __v field
+    collection: "amazon_webhooks",
+    strict: false,      // Allow any extra fields without schema validation
+    minimize: false,    // Preserve empty objects/arrays as-is
+    timestamps: true,   // createdAt + updatedAt
+    versionKey: false,
   }
 );
 
-// Compound index for efficient queries by customer + time
-amazonWebhookSchema.index({ customerId: 1, receivedAt: -1 });
-
-// Compound index for product + notification type queries
-amazonWebhookSchema.index({ productId: 1, notificationType: 1 });
+amazonWebhookSchema.index({ snsType: 1, receivedAt: -1 });
+amazonWebhookSchema.index({ notificationType: 1, receivedAt: -1 });
 
 const AmazonWebhook = mongoose.model("AmazonWebhook", amazonWebhookSchema);
 
