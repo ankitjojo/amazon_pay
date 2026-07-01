@@ -14,6 +14,15 @@ connectDB().catch((err) => {
 });
 
 // ── Global Middleware ──────────────────────────────────────────────────────
+app.use((req, res, next) => {
+  console.log("─────────────────────────────────────────────────────");
+  console.log(`📩 Incoming Request: ${req.method} ${req.url}`);
+  console.log("📋 Headers:", JSON.stringify(req.headers, null, 2));
+  console.log("📦 Body:", req.body);
+  console.log("─────────────────────────────────────────────────────");
+  next();
+});
+
 // Webhook route uses captureRawBody middleware — skip global JSON parsing for it
 app.use((req, res, next) => {
   if (req.path.startsWith("/api/webhooks")) return next();

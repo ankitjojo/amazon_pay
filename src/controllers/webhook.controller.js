@@ -11,7 +11,8 @@ const { sendSuccess, sendError } = require("../utils/response.utils");
 const handleAmazonRTN = async (req, res) => {
   try {
     const payload = req.body;
-
+    console.log("req.body")
+    console.log(req.body)
     // ── Incoming request log ───────────────────────────────────────────────
     console.log("─────────────────────────────────────────────────────");
     console.log(`📩  Webhook hit: POST /api/webhooks/amazon/rtdn`);

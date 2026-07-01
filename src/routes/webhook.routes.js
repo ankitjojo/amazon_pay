@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const captureRawBody = require("../middleware/rawBody.middleware");
+const logWebhookRequest = require("../middleware/webhookLogger.middleware");
 const { handleAmazonRTN, listWebhooks } = require("../controllers/webhook.controller");
 
 /**
@@ -12,7 +13,8 @@ const { handleAmazonRTN, listWebhooks } = require("../controllers/webhook.contro
  * Raw body capture middleware runs BEFORE any JSON parsing
  * to preserve the original payload bytes for signature verification.
  */
-router.post("/rtdn", captureRawBody, handleAmazonRTN);
+// router.post("/rtdn",  handleAmazonRTN);
+router.post("/rtdn", captureRawBody, logWebhookRequest, handleAmazonRTN);
 
 /**
  * @route  GET /api/webhooks/amazon/rtdn
